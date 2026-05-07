@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  ADMIN
+  PAREJA
+  PAREJA_EQUIPO
+  COORDINADOR
+  SECRETARIA
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  photoUrl  String?
+  bio       String?
+  locale    String   @default("es")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles     UserRole[]
+}
+
+model Role {
+  id    String   @id @default(cuid())
+  type  RoleType @unique
+  users UserRole[]
+}
+
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId])
+}
+
+model Community {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Retreat {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CustomFieldDefinition {
+  id         String  @id @default(cuid())
+  entityType String
+  key        String
+  label      String
+  fieldType  String
+  required   Boolean @default(false)
+  options    Json?
+
+  @@unique([entityType, key])
+}
+
+model CustomFieldValue {
+  id           String @id @default(cuid())
+  definitionId String
+  entityId     String
+  valueJson    Json
+}
